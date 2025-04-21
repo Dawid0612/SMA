@@ -26,15 +26,6 @@ llm = ChatOpenAI(temperature=0.3, openai_api_key=OPENAI_API_KEY)
 os.makedirs("docs", exist_ok=True)
 os.makedirs("history", exist_ok=True)
 
-# 📂 Pokazanie listy wgranych plików
-st.markdown("## 📂 Wgrane dokumenty")
-doc_files = os.listdir("docs")
-if not doc_files:
-    st.info("Brak dokumentów. Wgraj coś poniżej.")
-else:
-    for file in doc_files:
-        st.markdown(f"✅ {file}")
-
 def load_documents():
     documents = []
     for filename in os.listdir("docs"):
@@ -73,6 +64,7 @@ def export_chat_to_pdf(chat):
 def list_saved_chats():
     return [f for f in os.listdir("history") if f.endswith(".json")]
 
+# 🔽 WGRYWANIE PLIKÓW
 uploaded_files = st.file_uploader("📎 Wgraj dokumenty (PDF, DOCX, TXT):", type=["pdf", "docx", "txt"], accept_multiple_files=True)
 if uploaded_files:
     for file in uploaded_files:
@@ -80,6 +72,16 @@ if uploaded_files:
             f.write(file.getbuffer())
     st.success("✅ Pliki zostały zapisane!")
 
+# 📂 POKAZANIE LISTY PLIKÓW (po wgraniu lub wcześniejszych)
+st.markdown("## 📂 Wgrane dokumenty")
+doc_files = os.listdir("docs")
+if not doc_files:
+    st.info("Brak dokumentów. Wgraj coś powyżej.")
+else:
+    for file in doc_files:
+        st.markdown(f"✅ {file}")
+
+# 🔍 PRZETWARZANIE DOKUMENTÓW
 with st.spinner("📚 Przetwarzanie dokumentów..."):
     documents = load_documents()
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
@@ -89,6 +91,7 @@ with st.spinner("📚 Przetwarzanie dokumentów..."):
     retriever = db.as_retriever()
     chain = ConversationalRetrievalChain.from_llm(llm, retriever)
 
+# 💬 CZAT
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -101,6 +104,7 @@ if user_input:
         st.markdown(f"**Ty:** {user_input}")
         st.markdown(f"**Bot:** {result}")
 
+# 📄 EKSPORT I ARCHIWUM
 if st.session_state.chat_history:
     st.markdown("### 💾 Zapisz rozmowę:")
     if st.button("📤 Eksportuj do PDF"):
@@ -112,6 +116,7 @@ if st.session_state.chat_history:
         save_chat_history(st.session_state.chat_history)
         st.success("✅ Rozmowa zapisana do archiwum!")
 
+# 📂 PRZEGLĄDANIE ARCHIWUM
 st.markdown("## 📂 Archiwum rozmów")
 history_files = list_saved_chats()
 for file in sorted(history_files, reverse=True):
