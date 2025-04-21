@@ -72,7 +72,7 @@ if uploaded_files:
             f.write(file.getbuffer())
     st.success("✅ Pliki zostały zapisane!")
 
-# 📂 Pokaż listę wgranych dokumentów
+# 📂 Lista dokumentów
 st.markdown("## 📂 Wgrane dokumenty")
 doc_files = os.listdir("docs")
 if not doc_files:
@@ -98,3 +98,40 @@ if "chat_history" not in st.session_state:
 st.header("💬 Rozmowa z botem")
 user_input = st.text_input("Zadaj pytanie:")
 if user_input:
+    with st.spinner("🤖 Bot odpowiada..."):
+        history_as_pairs = [
+            (entry["question"], entry["answer"]) for entry in st.session_state.chat_history
+        ]
+        result = chain.run({
+            "question": user_input,
+            "chat_history": history_as_pairs
+        })
+        st.session_state.chat_history.append({
+            "question": user_input,
+            "answer": result
+        })
+        st.markdown(f"**Ty:** {user_input}")
+        st.markdown(f"**Bot:** {result}")
+
+# 📄 Eksport i archiwum
+if st.session_state.chat_history:
+    st.markdown("### 💾 Zapisz rozmowę:")
+    if st.button("📤 Eksportuj do PDF"):
+        pdf_path = export_chat_to_pdf(st.session_state.chat_history)
+        with open(pdf_path, "rb") as f:
+            st.download_button("📄 Pobierz PDF", f, file_name=os.path.basename(pdf_path))
+
+    if st.button("🗃️ Zapisz rozmowę do archiwum"):
+        save_chat_history(st.session_state.chat_history)
+        st.success("✅ Rozmowa zapisana do archiwum!")
+
+# 📂 Archiwum rozmów
+st.markdown("## 📂 Archiwum rozmów")
+history_files = list_saved_chats()
+for file in sorted(history_files, reverse=True):
+    if st.button(f"📖 {file}"):
+        with open(f"history/{file}", "r", encoding="utf-8") as f:
+            past_chat = json.load(f)
+            for entry in past_chat:
+                st.markdown(f"**Ty:** {entry['question']}")
+                st.markdown(f"**Bot:** {entry['answer']}")
