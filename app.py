@@ -16,7 +16,7 @@ PASSWORD = "StrategiaMA2025"
 st.set_page_config(page_title="Strategia MA – Pro", layout="wide")
 st.title("📊 Strategia MA – Bot Strategiczny Pro")
 
-password = st.text_input("🔐 Wpisz hasło dostępu:", type="password")
+password = st.text_input("🔒 Wpisz hasło dostępu:", type="password")
 if password != PASSWORD:
     st.stop()
 
@@ -25,6 +25,15 @@ llm = ChatOpenAI(temperature=0.3, openai_api_key=OPENAI_API_KEY)
 
 os.makedirs("docs", exist_ok=True)
 os.makedirs("history", exist_ok=True)
+
+# 📂 Pokazanie listy wgranych plików
+st.markdown("## 📂 Wgrane dokumenty")
+doc_files = os.listdir("docs")
+if not doc_files:
+    st.info("Brak dokumentów. Wgraj coś poniżej.")
+else:
+    for file in doc_files:
+        st.markdown(f"✅ {file}")
 
 def load_documents():
     documents = []
@@ -86,27 +95,27 @@ if "chat_history" not in st.session_state:
 st.header("💬 Rozmowa z botem")
 user_input = st.text_input("Zadaj pytanie:")
 if user_input:
-    with st.spinner("🧐 Bot odpowiada..."):
+    with st.spinner("🤖 Bot odpowiada..."):
         result = chain.run({"question": user_input, "chat_history": st.session_state.chat_history})
         st.session_state.chat_history.append({"question": user_input, "answer": result})
         st.markdown(f"**Ty:** {user_input}")
         st.markdown(f"**Bot:** {result}")
 
 if st.session_state.chat_history:
-    st.markdown("### 📏 Zapisz rozmowę:")
+    st.markdown("### 💾 Zapisz rozmowę:")
     if st.button("📤 Eksportuj do PDF"):
         pdf_path = export_chat_to_pdf(st.session_state.chat_history)
         with open(pdf_path, "rb") as f:
             st.download_button("📄 Pobierz PDF", f, file_name=os.path.basename(pdf_path))
 
-    if st.button("💃 Zapisz rozmowę do archiwum"):
+    if st.button("🗃️ Zapisz rozmowę do archiwum"):
         save_chat_history(st.session_state.chat_history)
         st.success("✅ Rozmowa zapisana do archiwum!")
 
 st.markdown("## 📂 Archiwum rozmów")
 history_files = list_saved_chats()
 for file in sorted(history_files, reverse=True):
-    if st.button(f"📓 {file}"):
+    if st.button(f"📖 {file}"):
         with open(f"history/{file}", "r", encoding="utf-8") as f:
             past_chat = json.load(f)
             for entry in past_chat:
