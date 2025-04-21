@@ -85,6 +85,11 @@ else:
 with st.spinner("📚 Przetwarzanie dokumentów..."):
     documents = load_documents()
     st.info(f"📄 Znaleziono {len(documents)} dokumentów.")
+    if documents:
+        st.success("✅ Dokumenty wczytane poprawnie.")
+    else:
+        st.error("❗ Nie udało się wczytać żadnych dokumentów.")
+
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     split_docs = splitter.split_documents(documents)
     st.info(f"🔍 Podzielono na {len(split_docs)} fragmentów.")
@@ -131,18 +136,3 @@ if st.session_state.chat_history:
         pdf_path = export_chat_to_pdf(st.session_state.chat_history)
         with open(pdf_path, "rb") as f:
             st.download_button("📄 Pobierz PDF", f, file_name=os.path.basename(pdf_path))
-
-    if st.button("🗃️ Zapisz rozmowę do archiwum"):
-        save_chat_history(st.session_state.chat_history)
-        st.success("✅ Rozmowa zapisana do archiwum!")
-
-# 📂 Archiwum rozmów
-st.markdown("## 📂 Archiwum rozmów")
-history_files = list_saved_chats()
-for file in sorted(history_files, reverse=True):
-    if st.button(f"📖 {file}"):
-        with open(f"history/{file}", "r", encoding="utf-8") as f:
-            past_chat = json.load(f)
-            for entry in past_chat:
-                st.markdown(f"**Ty:** {entry['question']}")
-                st.markdown(f"**Bot:** {entry['answer']}")
