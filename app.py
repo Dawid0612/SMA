@@ -89,12 +89,6 @@ with st.spinner("📚 Przetwarzanie dokumentów..."):
     split_docs = splitter.split_documents(documents)
     st.info(f"🔍 Podzielono na {len(split_docs)} fragmentów.")
 
+    chain = None
     if not split_docs:
-        st.warning("❗ Bot nie ma danych do analizy – sprawdź zawartość plików.")
-    else:
-        embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
-        db = FAISS.from_documents(split_docs, embeddings)
-        retriever = db.as_retriever()
-        chain = ConversationalRetrievalChain.from_llm(llm, retriever)
-
-        # 💬
+        st.warning("❗ Bot nie ma danych do analizy – odpowiada tylko ogólnie
